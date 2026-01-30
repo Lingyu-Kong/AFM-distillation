@@ -13,7 +13,7 @@ from mattertune.util import optional_import_error_message
 from .model import AllegroStudentModel
 
 
-def allegro_model_package(
+def nequip_model_package(
     ckpt_path: str | Path,
     output_path: str | Path,
     atoms_example: Atoms,

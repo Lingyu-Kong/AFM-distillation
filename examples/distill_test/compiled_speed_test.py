@@ -11,9 +11,7 @@ from ase.md.langevin import Langevin
 from ase.md.npt import NPT
 import wandb
 from tqdm import tqdm
-from afm_distill.main import load_model_from_checkpoint
-
-from afm_distill.models import PaiNNStudentModel, SchNetStudentModel
+from nequip.ase import NequIPCalculator
 
 supercell_as = [1, 2, 3, 4, 5, 8, 10, 12, 14, 16]
 
@@ -24,17 +22,16 @@ def main(args_dict: dict):
     assert isinstance(md_atoms_base, Atoms), "Expected an Atoms object"
     md_atoms_base.pbc = True
 
-    model_path = args_dict["model"]
-    model = load_model_from_checkpoint(model_path, weights_only=False)
-    calc = model.ase_calculator(device=f"cuda:{args_dict['device']}")
-    model_type = model_path.split("/")[-1].replace(".ckpt", "").lower()
-    if isinstance(model, PaiNNStudentModel) or isinstance(model, SchNetStudentModel):
-        # NOTE: For PaiNN and SchNet, we have verlet skin for further accelerating MD
-        if args_dict["nl_fn_type"] is not None:
-            model.set_neighborlist_fn(args_dict["nl_fn_type"])
-        if args_dict["skin_cutoff"] is not None:
-            model.set_neighborlist_skin(
-                args_dict["skin_cutoff"])
+    calculator = NequIPCalculator.from_compiled_model(
+        compile_path=args_dict["model"],
+        device="cuda",
+        chemical_species_to_atom_type_map=True,
+    )
+    model_type = args_dict["model"].split("/")[-1].split(".")[0]
+    if args_dict["model"].endswith(".pt2"):
+        model_type += "-aotinductor"
+    else:
+        model_type += "-torchscript"
 
     wandb.init(
         project="Distill-MDSpeedTest-SingleGPU",
@@ -46,7 +43,7 @@ def main(args_dict: dict):
     for a in supercell_as:
         md_atoms = copy.deepcopy(md_atoms_base)
         md_atoms = md_atoms * (a, a, a)
-        md_atoms.calc = calc
+        md_atoms.calc = calculator
         rich.print(f"Running supercell {a}x{a}x{a}, {len(md_atoms)} atoms")
 
         if args_dict["thermo_state"].lower() == "nvt":
@@ -78,9 +75,6 @@ def main(args_dict: dict):
                     dyn.step()
                 wandb.log({
                     "Temperature (K)": dyn.atoms.get_temperature(),
-                    "Build Graph Time (s)": calc.last_build_graph_time,
-                    "Forward Time (s)": calc.last_forward_time,
-                    "Calculate Time (s)": calc.last_calculation_time,
                 })
         except Exception as e:
             # check if it is CUDA out of memory error
@@ -107,7 +101,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str,
-                        default="./checkpoints/allegro-5.0A-T=2.ckpt")
+                        default="./checkpoints/allegro-4.0A-T=1.nequip.pt2")
     parser.add_argument("--thermo_state", type=str, default="NVT")
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--timestep", type=float, default=1)

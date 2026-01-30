@@ -82,6 +82,7 @@ class MatterTuneCalculator(Calculator):
         batch = self.model.atoms_to_data(input_atoms, has_labels=False)
         batch = self.model.collate_fn([batch])
         batch = self.model.batch_to_device(batch, self.model.device)
+        self.last_build_graph_time = time.time() - time1
         
         _time = time.time()
         pred = self.model.predict_step(
