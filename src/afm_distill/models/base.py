@@ -714,7 +714,7 @@ class StudentModuleBase(
 
         Returns
         -------
-        MatterTuneCalculator
+        StudentCalculator
             An ASE calculator wrapper around the trained potential that can be used
             for energy and force calculations via ASE's interfaces.
 
@@ -728,9 +728,9 @@ class StudentModuleBase(
         >>> forces = atoms.get_forces()
         """
 
-        from ..wrappers.ase_calculator import MatterTuneCalculator
+        from ..wrappers.ase_calculator import StudentCalculator
 
-        return MatterTuneCalculator(self, device=torch.device(device))
+        return StudentCalculator(self, device=torch.device(device))
 
     def batch_to_device(self, batch, device):
         """

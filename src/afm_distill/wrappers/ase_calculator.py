@@ -19,9 +19,9 @@ from mattertune.wrappers.utils.graph_partition import grid_partition, BFS_extens
 from mattertune.wrappers.utils.parallel_inference import ParallizedInferenceBase
 
 
-class MatterTuneCalculator(Calculator):
+class StudentCalculator(Calculator):
     """
-    A fast version of the MatterTuneCalculator that uses the `predict_step` method directly without creating a trainer.
+    A fast version of the StudentCalculator that uses the `predict_step` method directly without creating a trainer.
     """
     
     @override
@@ -63,12 +63,12 @@ class MatterTuneCalculator(Calculator):
 
         # Make sure `self.atoms` is set.
         assert self.atoms is not None, (
-            "`MatterTuneCalculator.atoms` is not set. "
+            "`StudentCalculator.atoms` is not set. "
             "This should have been set by the parent class. "
             "Please report this as a bug."
         )
         assert isinstance(self.atoms, Atoms), (
-            "`MatterTuneCalculator.atoms` is not an `ase.Atoms` object. "
+            "`StudentCalculator.atoms` is not an `ase.Atoms` object. "
             "This should have been set by the parent class. "
             "Please report this as a bug."
         )
@@ -95,7 +95,7 @@ class MatterTuneCalculator(Calculator):
             ase_prop_name = prop.ase_calculator_property_name()
             assert ase_prop_name is not None, (
                 f"Property '{prop.name}' does not have an ASE calculator property name. "
-                "This should have been checked when creating the MatterTuneCalculator. "
+                "This should have been checked when creating the StudentCalculator. "
                 "Please report this as a bug."
             )
 
@@ -156,9 +156,9 @@ def grid_partition_atoms(
 
 
 
-class MatterTunePartitionCalculator(Calculator):
+class StudentPartitionCalculator(Calculator):
     """
-    Another version of MatterTuneCalculator that supports partitioning of the graph.
+    Another version of StudentCalculator that supports partitioning of the graph.
     Used for large systems where partitioning can help in efficient computation.
     """
     
@@ -173,9 +173,9 @@ class MatterTunePartitionCalculator(Calculator):
         energy_denormalize: bool = True,
     ):
         """
-        ASE Calculator that uses a MatterTune model for predictions with graph partitioning and Multi-GPU inference.
+        ASE Calculator that uses a Student model for predictions with graph partitioning and Multi-GPU inference.
         Args:
-            - model (StudentModuleBase): The MatterTune model to use for predictions.
+            - model (StudentModuleBase): The Student model to use for predictions.
             - inferencer (ParallizedInferenceBase): The parallel inference engine to use for predictions.
             - mp_steps (int): Number of message passing steps to consider for partition extension.
             - granularity (int | tuple[int, int, int]): Granularity of the grid partitioning. If an int is provided, it will be used for all three dimensions.
@@ -228,12 +228,12 @@ class MatterTunePartitionCalculator(Calculator):
         time1 = time.time()
         # Make sure `self.atoms` is set.
         assert self.atoms is not None, (
-            "`MatterTuneCalculator.atoms` is not set. "
+            "`StudentCalculator.atoms` is not set. "
             "This should have been set by the parent class. "
             "Please report this as a bug."
         )
         assert isinstance(self.atoms, Atoms), (
-            "`MatterTuneCalculator.atoms` is not an `ase.Atoms` object. "
+            "`StudentCalculator.atoms` is not an `ase.Atoms` object. "
             "This should have been set by the parent class. "
             "Please report this as a bug."
         )

@@ -20,9 +20,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class MatterTunePropertyPredictor:
+class StudentPropertyPredictor:
     """
-    A wrapper class for handling predictions using a fine-tuned MatterTune model.
+    A wrapper class for handling predictions using a fine-tuned Student model.
 
     This class provides an interface to make predictions using a trained neural network.
     It wraps a PyTorch Lightning module and handles the necessary setup for making
@@ -36,8 +36,8 @@ class MatterTunePropertyPredictor:
 
     Examples
     --------
-    >>> from mattertune.wrappers import MatterTunePropertyPredictor
-    >>> predictor = MatterTunePropertyPredictor(trained_model)  # OR `predictor = trained_model.property_predictor()`
+    >>> from mattertune.wrappers import StudentPropertyPredictor
+    >>> predictor = StudentPropertyPredictor(trained_model)  # OR `predictor = trained_model.property_predictor()`
     >>> predictions = predictor.predict(atoms_list)
 
     The class provides a simplified interface for making predictions with trained models,

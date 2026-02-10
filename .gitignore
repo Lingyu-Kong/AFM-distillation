@@ -215,3 +215,4 @@ hidden/
 md_results/
 plots/
 *.png
+*.nfs*

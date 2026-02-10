@@ -23,7 +23,6 @@ dependencies = [
     "nshutils",
     "psutil",
     "autopep8",
-    "mattertune @ git+https://github.com/Fung-Lab/MatterTune.git@main",
 ]
 
 [project.optional-dependencies]
