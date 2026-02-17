@@ -75,7 +75,7 @@ def main(args_dict: dict):
         hparams.data = MC.ManualSplitDataModuleConfig.draft()
         hparams.data.num_workers = 8
         hparams.data.train = MC.XYZDatasetConfig.draft()
-        hparams.data.train.src = "/net/csefiles/coc-fung-cluster/lingyu/afm_distill/MatterSim1M-FT30-H2O-Feb5/f<30_data.xyz"
+        hparams.data.train.src = "/net/csefiles/coc-fung-cluster/lingyu/afm_distill/MatterSim1M-FT30-H2O-Feb5/all_data.xyz"
         hparams.data.validation = MC.XYZDatasetConfig.draft()
         hparams.data.validation.src = "/nethome/lkong88/MatterTune/examples/water-thermodynamics/data/train_water_30_eVAng.xyz"
         hparams.data.batch_size = args_dict["batch_size"]
@@ -125,7 +125,7 @@ def main(args_dict: dict):
         return hparams
 
     train_config = hparams()
-    model = OfflineDistillation(train_config).train()
+    model, trainer = OfflineDistillation(train_config).train()
 
     from ase.io import read
     from ase import Atoms

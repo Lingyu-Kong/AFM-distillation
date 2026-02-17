@@ -67,7 +67,7 @@ class OfflineDistillation:
 
     def train(
             self,
-            trainer_kwargs: dict[str, Any] | None = None) -> StudentModuleBase:
+            trainer_kwargs: dict[str, Any] | None = None) -> tuple[StudentModuleBase, Trainer]:
         # Make sure all the necessary dependencies are installed
         self.config.model.ensure_dependencies()
 
@@ -117,11 +117,12 @@ class OfflineDistillation:
         trainer = Trainer(**trainer_kwargs_)
         trainer.fit(lightning_module, datamodule)
 
-        return lightning_module
+        return lightning_module, trainer
 
 
 def load_model_from_checkpoint(
     ckpt_path: str,
+    weights_only: bool = False,
     **kwargs: Any,  # for some models, additional args may needed
 ):
     import torch
@@ -141,12 +142,12 @@ def load_model_from_checkpoint(
 
     match name:
         case "allegro":
-            return AllegroStudentModel.load_from_checkpoint(ckpt_path, **kwargs)
+            return AllegroStudentModel.load_from_checkpoint(ckpt_path, weights_only=weights_only, **kwargs)
         case "schnet":
-            return SchNetStudentModel.load_from_checkpoint(ckpt_path, **kwargs)
+            return SchNetStudentModel.load_from_checkpoint(ckpt_path, weights_only=weights_only, **kwargs)
         case "painn":
-            return PaiNNStudentModel.load_from_checkpoint(ckpt_path, **kwargs)
+            return PaiNNStudentModel.load_from_checkpoint(ckpt_path, weights_only=weights_only, **kwargs)
         case "cace":
-            return CACEStudentModel.load_from_checkpoint(ckpt_path, **kwargs)
+            return CACEStudentModel.load_from_checkpoint(ckpt_path, weights_only=weights_only, **kwargs)
         case _:
             raise ValueError(f"Unknown model name '{name}' in checkpoint.")

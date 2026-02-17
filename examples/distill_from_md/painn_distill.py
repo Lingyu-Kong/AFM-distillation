@@ -106,7 +106,7 @@ def main(args_dict: dict):
         return hparams
 
     train_config = hparams()
-    model = OfflineDistillation(train_config).train()
+    model, trainer = OfflineDistillation(train_config).train()
 
     from ase.io import read
     from ase import Atoms

@@ -4,6 +4,7 @@ import copy
 import os
 import argparse
 import rich
+import datetime
 
 from ase import Atoms
 from ase.io import read, write
@@ -77,7 +78,8 @@ def main(args_dict: dict):
     )
 
     save_dir = args_dict["save_dir"]
-    run_name = f"RattleMD-{model_name}-{args_dict['starting_structrues'].split('/')[-1].split('.')[0]}"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+    run_name = f"RattleMD-{timestamp}-{model_name}-{args_dict['starting_structrues'].split('/')[-1].split('.')[0]}"
     save_path = os.path.join(save_dir, run_name)
     os.system(f"rm -rf {save_path}")
     os.makedirs(save_path)
@@ -100,6 +102,7 @@ def main(args_dict: dict):
         write(os.path.join(save_path, f"rattle_md_{idx}.xyz"), sampled_data)
         total_nums_data += len(sampled_data)
         wandb.log({"total_nums_data": total_nums_data})
+        rich.print(f"Finished trajectory {idx+1}/{len(starting_atoms_list)}, total nums data: {total_nums_data}")
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -113,7 +116,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default="./data/water_30.xyz",
     )
     parser.add_argument("--save_dir", type=str,
-                        default="/storage/lingyu/afm_distill/")
+                        default="/net/csefiles/coc-fung-cluster/lingyu/afm_distill/")
     parser.add_argument("--num_trajs", type=int, default=4)
     parser.add_argument("--sample_interval", type=int, default=50)
     parser.add_argument("--min_sigma", type=float, default=0.1)

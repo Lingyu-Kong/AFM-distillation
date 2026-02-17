@@ -131,6 +131,7 @@ class StudentEnsemblePredictor:
 
         if parallel:
             _validate_parallel_devices(device_list, num_models)
+            _warmup_cuda(device_list)
             with ThreadPoolExecutor(max_workers=num_models) as executor:
                 futures = [
                     executor.submit(
@@ -400,3 +401,14 @@ def _validate_parallel_devices(devices: Sequence[torch.device], num_models: int)
         raise ValueError(
             "Parallel prediction requires distinct devices for each model."
         )
+
+
+def _warmup_cuda(devices: list[torch.device]) -> None:
+    # Do warmup on each CUDA device to trigger lazy initialization before parallel prediction.
+    for d in devices:
+        if d.type != "cuda":
+            continue
+        with torch.cuda.device(d):
+            x = torch.eye(3, device=d)
+            _ = torch.linalg.det(x)
+            torch.cuda.synchronize(d)
