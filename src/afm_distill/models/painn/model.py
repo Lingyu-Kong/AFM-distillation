@@ -180,7 +180,7 @@ class PaiNNStudentModel(
         with optional_import_error_message("schnetpack"):
             from schnetpack.model import NeuralNetworkPotential
             from schnetpack.representation import PaiNN
-            from schnetpack.atomistic import PairwiseDistances, Atomwise, Forces
+            from schnetpack.atomistic import PairwiseDistances, Atomwise, Forces, Strain
             from schnetpack.transform import CastTo32
 
         self.neighbor_list_fn = self.hparams.neighbor_list_fn.create_neighbor_list_fn(
@@ -200,6 +200,9 @@ class PaiNNStudentModel(
             p, props.ForcesPropertyConfig) for p in self.hparams.properties) else False
         self.calc_stress = True if any(isinstance(
             p, props.StressesPropertyConfig) for p in self.hparams.properties) else False
+        input_modules = [pairwise_distance]
+        if self.calc_stress:
+            input_modules.insert(0, Strain())
         pred_energy = Atomwise(
             n_in=self.hparams.n_atom_basis,
             output_key="energy",
@@ -214,7 +217,7 @@ class PaiNNStudentModel(
         )
         self.model = NeuralNetworkPotential(
             representation=painn_representation,
-            input_modules=[pairwise_distance],
+            input_modules=input_modules,
             output_modules=[
                 pred_energy, pred_forces] if self.calc_forces or self.calc_stress else [pred_energy],
         )
@@ -266,7 +269,7 @@ class PaiNNStudentModel(
         labels: dict[str, torch.Tensor] = {}
         for prop in self.hparams.properties:
             prop_name = HARDCODED_NAMES[type(prop)]  # type: ignore
-            labels[prop_name] = batch[prop_name]
+            labels[prop.name] = batch[prop_name]
         return labels
 
     @override
@@ -290,13 +293,19 @@ class PaiNNStudentModel(
             for prop in self.hparams.properties:
                 prop_name = HARDCODED_NAMES[type(prop)]  # type: ignore
                 value = prop._from_ase_atoms_to_torch(atoms)
-                value = prop._from_ase_atoms_to_torch(atoms)
                 match prop_name:
                     case "energy":
                         value = value.view(1,)
                     case "forces":
                         value = value.view(len(atoms), 3)
                     case "stress":
+                        if value.numel() == 6:
+                            from ase.stress import voigt_6_to_full_3x3_stress
+
+                            stress = voigt_6_to_full_3x3_stress(
+                                value.detach().cpu().numpy()
+                            )
+                            value = torch.from_numpy(stress).to(value)
                         value = value.view(3, 3)
                     case _:
                         raise RuntimeError("Unknown prop_name")
